@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: postgre
+spec: 
+  selector: 
+    matchLabels: 
+      app: postgre
+  template: 
+    metadata:     
+      labels: 
+        app: postgre
+    spec:
+      containers: 
+      - name: postgre
+        image: postgres:14.3
+        ports: 
+          - containerPort: 5432
+        env: 
+          - name: POSTGRES_PASSWORD
+            value: "supersenha"
+          - name: POSTGRES_USER
+            value: "conversao-temperatura"
+          - name : POSTGRES_DB
+            value: "conversao-temperatura"
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  name: postgre
+spec:
+  selector:
+    app: postgre
+  ports: 
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: conversao-temperatura 
+spec:
+  selector: 
+    matchLabels: 
+      app: conversao-temperatura
+  template: 
+    metadata: 
+      labels: 
+        app: conversao-temperatura
+    spec: 
+      containers: 
+      - name: conversao-temperatura
+        image: brunonunesdesa/kube-news:v1
+        env: 
+          - name: DB_DATABASE
+            value: "conversao-temperatura"
+          - name: DB_USERNAME
+            value: "conversao-temperatura"
+          - name: DB_PASSWORD
+            value: "supersenha"
+          - name: DB_HOST
+            value: "postgre"
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  name: conversao-temperatura
+spec:
+  type: NodePort
+  selector:
+    app: conversao-temperatura
+  ports: 
+    - port: 80
+      targetPort: 8080
+      nodePort: 30000
+      
